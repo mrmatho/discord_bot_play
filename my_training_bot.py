@@ -22,7 +22,7 @@ async def on_message(message):
         await message.channel.send('Goodbye Legend!')
     
     if message.content.startswith('$help'):
-        await message.channel.send('Hello Legend! I am your training bot. I can help you with your training. Just type $hello, $bye or $help to get started.')
+        await message.channel.send('Try $AFL, $hello or $goodbye')
     
     if message.content.startswith('$afl') or message.content.startswith('$AFL'):
         try:
@@ -36,7 +36,7 @@ async def on_message(message):
                 for g in games:
                     print(g)
                     score = f"{g['hteam']} {g['hgoals']}.{g['hbehinds']}.{g['hscore']} vs {g['ateam']} {g['agoals']}.{g['abehinds']}.{g['ascore']}"
-                    msg = f"{g['roundname']} - {g['venue']}"
+                    msg = f"{g['timestr']}. {g['roundname']} - {g['venue']}"
                     updated = f"Updated: {g['updated']}"
                     await message.channel.send(score)
                     await message.channel.send(msg)
