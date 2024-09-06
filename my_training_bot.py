@@ -1,6 +1,8 @@
 import discord
 import requests
+import logging
 
+logging.basicConfig(level=logging.ERROR)
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -8,7 +10,7 @@ client = discord.Client(intents=intents)
 
 @client.event
 async def on_ready():
-    print(f'We have logged in as {client.user}')
+    logging.info(f'We have logged in as {client.user}')
 
 @client.event
 async def on_message(message):
@@ -23,6 +25,34 @@ async def on_message(message):
     
     if message.content.startswith('$help'):
         await message.channel.send('Try $AFL, $hello or $goodbye')
+    
+    if message.content.startswith('$poem'):
+        try:
+            # Fetch a random poem from poetrydb.org
+            header = {'User-Agent': "Cheeky Little Discord Bot - geoffmatheson@gmail.com"}
+            url = "https://poetrydb.org/random"
+            response = requests.get(url, headers = header)
+            await message.channel.send('Here is a random little poem for you:')
+            data = response.json()[0]
+            logging.info("Poetry JSON: " + str(data))
+            await message.channel.send(data['title'] + " by " + data['author'])
+            # Setting a max of 20 lines
+            if len(data['lines']) > 20:
+                lines = data['lines'][:19]
+                lines.append('... (truncated)')
+            else: 
+                lines = data['lines']    
+                
+                
+            # Put each line of the poem into the chat
+            for line in lines:
+                if len(line) > 0:
+                    await message.channel.send(line)
+                else: 
+                    await message.channel.send('...')
+        except Exception as e:
+            logging.error(e)
+            await message.channel.send('Sorry, I could not get a poem at the moment.')
     
     if message.content.startswith('$afl') or message.content.startswith('$AFL'):
         try:
