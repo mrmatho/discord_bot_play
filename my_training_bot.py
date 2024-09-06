@@ -2,6 +2,7 @@ import discord
 import requests
 import logging
 import os
+import random
 
 
 logging.basicConfig(level=logging.ERROR)
@@ -31,6 +32,8 @@ async def on_message(message):
         await handle_poem(message)
     elif message.content.lower().startswith("$afl"):
         await handle_afl(message)
+    elif message.content.startswith("$dice"):
+        await handle_dice(message)
 
 
 async def handle_hello(message):
@@ -92,6 +95,40 @@ async def handle_afl(message):
         await message.channel.send(
             "Sorry, I could not fetch the AFL scores at this time."
         )
+
+
+async def handle_dice(message):
+    try:
+        dice = message.content.split(" ")[1:]
+        if not dice:
+            num_dice = 1
+            num_sides = 6
+        else:
+            num_dice = int(dice[0])
+            if len(dice) == 1:
+                num_sides = 6
+            else:
+                num_sides = int(dice[1])
+    except ValueError:
+        await message.channel.send("Unsure of how many dice or sides you want. Defaulting to 1d6.")
+        num_dice = 1
+        num_sides = 6
+
+    try:
+        if num_dice > 100 or num_sides > 100:
+            await message.channel.send(
+                "Please keep the number of dice and sides on each die less than 100."
+            )
+            return
+        rolls = [random.randint(1, num_sides) for _ in range(num_dice)]
+        total = sum(rolls)
+        if num_dice == 1:
+            await message.channel.send(f"Roll: {rolls[0]}")
+        else:
+            await message.channel.send(f"Rolls: {rolls}\nTotal: {total}")
+    except Exception as e:
+        logging.error(f"Error rolling dice: {e}")
+        await message.channel.send("Sorry, I could not roll the dice at this time.")
 
 
 # Retrieve the token from the environment variable
