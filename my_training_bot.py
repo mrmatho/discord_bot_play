@@ -68,19 +68,20 @@ async def handle_poem(message):
     except Exception as e:
         logging.error(f"Error fetching poem: {e}")
         await message.channel.send("Sorry, I could not fetch a poem at this time.")
+    finally:
+        await message.channel.send("~~~")
 
 
 async def handle_afl(message):
     try:
-        header = {'User-Agent': "Cheeky Little Discord Bot - geoffmatheson@gmail.com"}
+        header = {"User-Agent": "Cheeky Little Discord Bot - geoffmatheson@gmail.com"}
 
         response = requests.get(
             "https://api.squiggle.com.au/?q=games;live=1", headers=header
         )
         response.raise_for_status()
         games = response.json()["games"]
-        
-        
+
         if len(games) == 0:
             await message.channel.send("No live AFL games at the moment.")
             return
@@ -89,9 +90,17 @@ async def handle_afl(message):
             away_team = game["ateam"]
             home_score = game["hscore"]
             away_score = game["ascore"]
-            last_update = game["updated"]
+            last_update = game["timestr"]
+            home_goals = game["hgoals"]
+            home_behinds = game["hbehinds"]
+            away_goals = game["agoals"]
+            away_behinds = game["abehinds"]
+
             await message.channel.send(
-                f"{home_team} {home_score} - {away_team} {away_score} (Last updated: {last_update})"
+                f"**{home_team}** {home_goals}.{home_behinds}.**{home_score}** - **{away_team}** {away_goals}.{away_behinds}**{away_score}**"
+            )
+            await message.channel.send(
+                f"(Last updated: {last_update} {game['roundname']} - {game['venue']}"
             )
     except Exception as e:
         logging.error(f"Error fetching AFL scores: {e}")
@@ -114,7 +123,9 @@ async def handle_dice(message):
             else:
                 num_sides = int(dice[1])
     except ValueError:
-        await message.channel.send("Unsure of how many dice or sides you want. Defaulting to 1d6.")
+        await message.channel.send(
+            "Unsure of how many dice or sides you want. Defaulting to 1d6."
+        )
         num_dice = 1
         num_sides = 6
 
