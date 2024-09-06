@@ -1,6 +1,8 @@
 import discord
 import requests
 import logging
+import os
+
 
 logging.basicConfig(level=logging.ERROR)
 intents = discord.Intents.default()
@@ -75,6 +77,9 @@ async def handle_afl(message):
         logging.error(f'Error fetching AFL scores: {e}')
         await message.channel.send('Sorry, I could not fetch the AFL scores at this time.')
 
+# Retrieve the token from the environment variable
+token = os.getenv('DISCORD_BOT_TOKEN')
+if token is None:
+    raise ValueError("No Discord bot token found in environment variables")
 
-
-client.run('MTIzNDM1NTQwMTU2NzM3NTM4MA.GgmFAS.7lOYJBEkjA6zbSSARs_7LNP_9aiukdazf09EqU')
+client.run(token)
