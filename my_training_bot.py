@@ -5,7 +5,7 @@ import os
 import random
 
 
-logging.basicConfig(level=logging.ERROR)
+logging.basicConfig(level=logging.INFO)
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -72,16 +72,19 @@ async def handle_poem(message):
 
 async def handle_afl(message):
     try:
+        header = {'User-Agent': "Cheeky Little Discord Bot - geoffmatheson@gmail.com"}
+
         response = requests.get(
-            "https://api.squiggle.com.au/?q=games;year=2023;round=1"
+            "https://api.squiggle.com.au/?q=games;live=1", headers=header
         )
         response.raise_for_status()
         games = response.json()["games"]
-        live_games = [game for game in games if game["is_live"]]
-        if not live_games:
+        
+        
+        if len(games) == 0:
             await message.channel.send("No live AFL games at the moment.")
             return
-        for game in live_games:
+        for game in games:
             home_team = game["hteam"]
             away_team = game["ateam"]
             home_score = game["hscore"]
@@ -92,6 +95,7 @@ async def handle_afl(message):
             )
     except Exception as e:
         logging.error(f"Error fetching AFL scores: {e}")
+        logging.error(response.text)
         await message.channel.send(
             "Sorry, I could not fetch the AFL scores at this time."
         )
