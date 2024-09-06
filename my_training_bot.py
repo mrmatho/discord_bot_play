@@ -18,64 +18,63 @@ async def on_message(message):
         return
 
     if message.content.startswith('$hello'):
-        await message.channel.send('Hello Legend!')
-        
-    if message.content.startswith('$bye') or message.content.startswith('$goodbye'):
-        await message.channel.send('Goodbye Legend!')
-    
-    if message.content.startswith('$help'):
-        await message.channel.send('Try $AFL, $hello or $goodbye')
-    
-    if message.content.startswith('$poem'):
-        try:
-            # Fetch a random poem from poetrydb.org
-            header = {'User-Agent': "Cheeky Little Discord Bot - geoffmatheson@gmail.com"}
-            url = "https://poetrydb.org/random"
-            response = requests.get(url, headers = header)
-            await message.channel.send('Here is a random little poem for you:')
-            data = response.json()[0]
-            logging.info("Poetry JSON: " + str(data))
-            await message.channel.send(data['title'] + " by " + data['author'])
-            # Setting a max of 20 lines
-            if len(data['lines']) > 20:
-                lines = data['lines'][:19]
-                lines.append('... (truncated)')
-            else: 
-                lines = data['lines']    
-                
-                
-            # Put each line of the poem into the chat
-            for line in lines:
-                if len(line) > 0:
-                    await message.channel.send(line)
-                else: 
-                    await message.channel.send('...')
-        except Exception as e:
-            logging.error(e)
-            await message.channel.send('Sorry, I could not get a poem at the moment.')
-    
-    if message.content.startswith('$afl') or message.content.startswith('$AFL'):
-        try:
-            header = {'User-Agent': "Cheeky Little Discord Bot - geoffmatheson@gmail.com"}
-            url = "https://api.squiggle.com.au/?q=games;live=1"
-            response = requests.get(url, headers = header)
-            #print(response.text)
-            data = response.json()
-            games = data['games']
-            if games:
-                for g in games:
-                    print(g)
-                    score = f"{g['hteam']} {g['hgoals']}.{g['hbehinds']}.{g['hscore']} vs {g['ateam']} {g['agoals']}.{g['abehinds']}.{g['ascore']}"
-                    msg = f"{g['timestr']}. {g['roundname']} - {g['venue']}"
-                    updated = f"Updated: {g['updated']}"
-                    await message.channel.send(score)
-                    await message.channel.send(msg)
-                    await message.channel.send(updated)
-            else:
-                await message.channel.send('No games are currently live.')
-        except Exception as e:
-            print(e)
-            await message.channel.send('Sorry, I could not get the AFL scores at the moment.')
-        
+        await handle_hello(message)
+    elif message.content.startswith('$bye') or message.content.startswith('$goodbye'):
+        await handle_goodbye(message)
+    elif message.content.startswith('$help'):
+        await handle_help(message)
+    elif message.content.startswith('$poem'):
+        await handle_poem(message)
+    elif message.content.lower().startswith('$afl'):
+        await handle_afl(message)
+
+async def handle_hello(message):
+    await message.channel.send('Hello Legend!')
+
+async def handle_goodbye(message):
+    await message.channel.send('Goodbye Legend!')
+
+async def handle_help(message):
+    help_message = "Available commands: $hello, $goodbye, $help, $poem, $afl"
+    await message.channel.send(help_message)
+
+async def handle_poem(message):
+    try:
+        response = requests.get('https://poetrydb.org/random')
+        response.raise_for_status()
+        poem = response.json()[0]
+        title = poem['title']
+        author = poem['author']
+        lines = poem['lines']
+        await message.channel.send(f'**{title}** by {author}')
+        for line in lines[:20]:
+            await message.channel.send(line)
+        if len(lines) > 20:
+            await message.channel.send('... (truncated)')
+    except Exception as e:
+        logging.error(f'Error fetching poem: {e}')
+        await message.channel.send('Sorry, I could not fetch a poem at this time.')
+
+async def handle_afl(message):
+    try:
+        response = requests.get('https://api.squiggle.com.au/?q=games;year=2023;round=1')
+        response.raise_for_status()
+        games = response.json()['games']
+        live_games = [game for game in games if game['is_live']]
+        if not live_games:
+            await message.channel.send('No live AFL games at the moment.')
+            return
+        for game in live_games:
+            home_team = game['hteam']
+            away_team = game['ateam']
+            home_score = game['hscore']
+            away_score = game['ascore']
+            last_update = game['updated']
+            await message.channel.send(f'{home_team} {home_score} - {away_team} {away_score} (Last updated: {last_update})')
+    except Exception as e:
+        logging.error(f'Error fetching AFL scores: {e}')
+        await message.channel.send('Sorry, I could not fetch the AFL scores at this time.')
+
+
 
 client.run('MTIzNDM1NTQwMTU2NzM3NTM4MA.GgmFAS.7lOYJBEkjA6zbSSARs_7LNP_9aiukdazf09EqU')
