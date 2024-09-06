@@ -115,9 +115,9 @@ async def handle_dice(message):
         num_sides = 6
 
     try:
-        if num_dice > 100 or num_sides > 100:
+        if num_dice > 100 or num_sides > 100 or num_dice < 1 or num_sides < 1:
             await message.channel.send(
-                "Please keep the number of dice and sides on each die less than 100."
+                "Please keep the number of dice and sides on each die less than 100 and more than 0."
             )
             return
         rolls = [random.randint(1, num_sides) for _ in range(num_dice)]
