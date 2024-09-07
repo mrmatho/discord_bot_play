@@ -97,7 +97,10 @@ async def handle_afl(message):
             away_behinds = game["abehinds"]
 
             await message.channel.send(
-                f"**{home_team}** {home_goals}.{home_behinds}.**{home_score}** - **{away_team}** {away_goals}.{away_behinds}.**{away_score}**"
+                f"**{home_team}** {home_goals}.{home_behinds}.**{home_score}** "
+            )
+            await message.channel.send(
+                f"**{away_team}** {away_goals}.{away_behinds}.**{away_score}**"
             )
             await message.channel.send(
                 f"{last_update}  - *{game['roundname']} - {game['venue']}*"
