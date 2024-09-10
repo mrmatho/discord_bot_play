@@ -22,17 +22,17 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.startswith("$hello"):
+    if message.content.lower().startswith("$hello"):
         await handle_hello(message)
-    elif message.content.startswith("$bye") or message.content.startswith("$goodbye"):
+    elif message.content.lower().startswith("$bye") or message.content.startswith("$goodbye"):
         await handle_goodbye(message)
-    elif message.content.startswith("$help"):
+    elif message.content.lower().startswith("$help"):
         await handle_help(message)
-    elif message.content.startswith("$poem"):
+    elif message.content.lower().startswith("$poem"):
         await handle_poem(message)
-    elif message.content.lower().startswith("$afl"):
+    elif message.content.lower().startswith("$afl") or message.content.lower().startswith("$footy"):
         await handle_afl(message)
-    elif message.content.startswith("$dice"):
+    elif message.content.lower().startswith("$dice"):
         await handle_dice(message)
 
 
@@ -81,21 +81,27 @@ async def handle_afl(message):
         )
         response.raise_for_status()
         games = response.json()["games"]
-
+        # If there are no live games, show the most recent games
         if len(games) == 0:
             await message.channel.send("No live AFL games at the moment.")
-            return
+            await message.channel.send("Most recent games completed:")
+            response = requests.get(
+            "https://api.squiggle.com.au/?q=games;year=2024;complete=100", headers=header)
+            response.raise_for_status()
+            games = response.json()["games"][-4:]
+
+
         for game in games:
             home_team = game["hteam"]
             away_team = game["ateam"]
             home_score = game["hscore"]
             away_score = game["ascore"]
-            last_update = game["timestr"]
+            game_time = game["timestr"]
             home_goals = game["hgoals"]
             home_behinds = game["hbehinds"]
             away_goals = game["agoals"]
             away_behinds = game["abehinds"]
-
+            # Three lines to the message: Home, Away, and Details
             await message.channel.send(
                 f"**{home_team}** {home_goals}.{home_behinds}.**{home_score}** "
             )
@@ -103,7 +109,7 @@ async def handle_afl(message):
                 f"**{away_team}** {away_goals}.{away_behinds}.**{away_score}**"
             )
             await message.channel.send(
-                f"{last_update}  - *{game['roundname']} - {game['venue']}*"
+                f"{game_time}  - *{game['roundname']} - {game['venue']}*"
             )
     except Exception as e:
         logging.error(f"Error fetching AFL scores: {e}")
