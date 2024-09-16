@@ -4,21 +4,27 @@ import logging
 import os
 import random
 
-
+# Setting up logging (so that I can get more info when I need it, but not pollute my screen)
 logging.basicConfig(level=logging.INFO)
+
+# Boilerplate code from Discord to get the bot working
 intents = discord.Intents.default()
 intents.message_content = True
 
+# The client is the thing that makes it all work
 client = discord.Client(intents=intents)
 
-
+# Event handling: logs when the bot is ready
 @client.event
 async def on_ready():
     logging.info(f"We have logged in as {client.user}")
 
 
+# On Message event: sends the message off to functions to handle the relevant commands. 
+# Keeps all the prompt processing in one place, without additional logic in the on_message event.
 @client.event
 async def on_message(message):
+    
     if message.author == client.user:
         return
 
@@ -45,7 +51,7 @@ async def handle_goodbye(message):
 
 
 async def handle_help(message):
-    help_message = "Available commands: $hello, $goodbye, $help, $poem, $afl"
+    help_message = "Available commands: $hello, $goodbye, $help, $poem, $afl, $dice. \n Dice takes two optional arguments: number of dice and number of sides"
     await message.channel.send(help_message)
 
 
@@ -58,13 +64,12 @@ async def handle_poem(message):
         author = poem["author"]
         lines = poem["lines"]
         await message.channel.send(f"**{title}** by *{author}*")
-        for line in lines[:20]:
-            if len(line) > 0:
-                await message.channel.send(line)
-            else:
-                await message.channel.send("...")
+        msg = "\n".join(lines[:20])
         if len(lines) > 20:
-            await message.channel.send("... (truncated)")
+            msg += "\n... (truncated)"
+        await message.channel.send(msg)
+    
+    # Includes error handling for the requests.get() function    
     except Exception as e:
         logging.error(f"Error fetching poem: {e}")
         await message.channel.send("Sorry, I could not fetch a poem at this time.")
@@ -101,15 +106,11 @@ async def handle_afl(message):
             home_behinds = game["hbehinds"]
             away_goals = game["agoals"]
             away_behinds = game["abehinds"]
-            # Three lines to the message: Home, Away, and Details
+            # Three lines to the message: Home, Away, and Details. Now sending as one message.
             await message.channel.send(
-                f"**{home_team}** {home_goals}.{home_behinds}.**{home_score}** "
-            )
-            await message.channel.send(
-                f"**{away_team}** {away_goals}.{away_behinds}.**{away_score}**"
-            )
-            await message.channel.send(
-                f"{game_time}  - *{game['roundname']} - {game['venue']}*"
+                f"""**{home_team}** {home_goals}.{home_behinds}.**{home_score}** 
+                \n**{away_team}** {away_goals}.{away_behinds}.**{away_score}**
+                \n {game_time}  - *{game['roundname']} - {game['venue']}*"""
             )
     except Exception as e:
         logging.error(f"Error fetching AFL scores: {e}")
