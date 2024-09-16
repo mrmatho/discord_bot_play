@@ -17,13 +17,22 @@ client = discord.Client(intents=intents)
 # Event handling: logs when the bot is ready
 @client.event
 async def on_ready():
+    """
+    Called when the bot has successfully connected to the server and is ready to start receiving events.
+    """
     logging.info(f"We have logged in as {client.user}")
 
-
-# On Message event: sends the message off to functions to handle the relevant commands. 
-# Keeps all the prompt processing in one place, without additional logic in the on_message event.
 @client.event
 async def on_message(message):
+    """
+    Handles incoming messages and dispatches them to the appropriate handler functions based on the content of the message.
+    Parameters:
+    - message: The message object representing the incoming message.
+    Returns:
+    - None
+    Example usage:
+        await on_message(message)
+    """
     
     if message.author == client.user:
         return
@@ -56,6 +65,13 @@ async def handle_help(message):
 
 
 async def handle_poem(message):
+    """
+    Fetches a random poem from the PoetryDB API and sends it as a message in a Discord channel.
+    Parameters:
+    - message: The message object representing the Discord message.
+    Returns:
+    None
+    """
     try:
         response = requests.get("https://poetrydb.org/random")
         response.raise_for_status()
@@ -78,6 +94,22 @@ async def handle_poem(message):
 
 
 async def handle_afl(message):
+    """
+    Fetches live AFL games and displays their scores to discord.
+    If no games currently live, displays the most recent games.
+
+    Parameters:
+    - message: The message object representing the command trigger.
+
+    Returns:
+    - None
+
+    Raises:
+    - Exception: If there is an error fetching the AFL scores.
+
+    """
+        # Code to fetch and display AFL scores
+        # Error handling code
     try:
         header = {"User-Agent": "Cheeky Little Discord Bot - geoffmatheson@gmail.com"}
 
@@ -121,6 +153,21 @@ async def handle_afl(message):
 
 
 async def handle_dice(message):
+    """
+    Handle the dice command by rolling the specified number of dice with the specified number of sides.
+
+    Parameters:
+    - message (discord.Message): The message object that triggered the command. 
+        The content of the message should be in the format "$dice [num_dice] [num_sides]".
+
+    Returns:
+    - None
+
+    Raises:
+    - None
+
+    """
+
     try:
         dice = message.content.split(" ")[1:]
         if not dice:
