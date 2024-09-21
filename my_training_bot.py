@@ -115,11 +115,16 @@ async def handle_wiki(message):
         response = requests.get("https://en.wikipedia.org/api/rest_v1/page/random/summary")
         response.raise_for_status()
         article = response.json()
+        
         title = article["title"]
-        summary = article["extract"]
+        # summary = article["extract"]
         link = article["content_urls"]["mobile"]["page"]
+        imgUrl = article['thumbnail']['source']
+        e = discord.Embed(url=imgUrl, description=title, color=0x00ff00)
         await message.channel.send(f"**{title}**")
-        await message.channel.send(summary)
+        await message.channel.send(embed=e)
+        await message.channel.send(f"**Link:** {link}")
+        
     except Exception as e:
         logging.error(f"Error fetching Wikipedia article: {e}")
         await message.channel.send("Sorry, I could not fetch a Wikipedia article at this time.")
