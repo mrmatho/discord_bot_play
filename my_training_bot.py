@@ -5,7 +5,7 @@ import os
 import random
 
 # Setting up logging (so that I can get more info when I need it, but not pollute my screen)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(filename='discord.log', encoding='utf-8', level=logging.INFO)
 
 # Boilerplate code from Discord to get the bot working
 intents = discord.Intents.default()
@@ -49,9 +49,19 @@ async def on_message(message):
         await handle_afl(message)
     elif message.content.lower().startswith("$dice"):
         await handle_dice(message)
-
+    elif message.content.lower().startswith("$wiki"):
+        await handle_wiki(message)
 
 async def handle_hello(message):
+    """
+    Handles the 'hello' command by sending a greeting message to the channel.
+
+    Args:
+        message (discord.Message): The message object that triggered the command.
+
+    Returns:
+        None
+    """
     await message.channel.send("Hello Legend!")
 
 
@@ -92,6 +102,28 @@ async def handle_poem(message):
     finally:
         await message.channel.send("~~~")
 
+async def handle_wiki(message):
+    """
+    Fetches a random Wikipedia article summary and sends it as a message in a Discord channel.
+    Parameters:
+    - message: The message object representing the Discord message.
+    Returns:
+    None
+    """
+    
+    try:
+        response = requests.get("https://en.wikipedia.org/api/rest_v1/page/random/summary")
+        response.raise_for_status()
+        article = response.json()
+        title = article["title"]
+        summary = article["extract"]
+        link = article["content_urls"]["mobile"]["page"]
+        await message.channel.send(f"**{title}**")
+        await message.channel.send(summary)
+    except Exception as e:
+        logging.error(f"Error fetching Wikipedia article: {e}")
+        await message.channel.send("Sorry, I could not fetch a Wikipedia article at this time.")
+    
 
 async def handle_afl(message):
     """
